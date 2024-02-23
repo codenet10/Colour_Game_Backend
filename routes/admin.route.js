@@ -9,7 +9,6 @@ import { verifyJWT } from "../middleware/JWTVerify.js";
 import { isAdmin } from "../middleware/isAdmin.js";
 
 
-
 export const AdminRoute = (app) => {
 
     app.post("/api/admin-create",
@@ -407,6 +406,20 @@ app.put("/api/update", Authorize(["Admin"]), async (req, res) => {
           success: false,
           message: error.message || "Internal Server Error",
       });
+  }
+});
+
+
+app.post("/api/admin/slider-text-img/dynamic", Authorize(["Admin"]), async (req, res) => {
+  try {
+    const { sliderCount, data } = req.body; // Destructure the required fields
+    const createSlider = await AdminController.CreateSlider(sliderCount, data, req.user); // Pass the required fields directly
+    if (createSlider) {
+      res.status(201).send("Slider and text Created Successful");
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(e.code || 500).send({ message: e.message || "Internal Server Error" }); // Fallback to generic error response
   }
 });
 

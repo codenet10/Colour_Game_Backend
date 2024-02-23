@@ -4,6 +4,9 @@ import { Admin } from "../models/admin.model.js";
 import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
 import stringConstructor from "../constructor/stringConstructor.js";
+import awsS3Obj from "../helper/awsS3.js";
+import { Slider } from "../models/slider.model.js"
+import { log } from "console";
 // var stringConstructor = require("../constructor/stringConstructor.js");
 
 // const globalUsernames = [];
@@ -486,7 +489,46 @@ updateRunner: async (admin, gameId, marketId, runnerId, RunnerName) => {
 },
 
   
-  
+CreateSlider: async (sliderCount, data, user) => {
+  try {
+    // Check if data is an array
+    if (!Array.isArray(data)) {
+      throw { code: 400, message: "Data must be an array" };
+    }
+
+    let documentArray = [];
+
+    for (const element of data) {
+      let obj = {};
+      const result = await awsS3Obj.addDocumentToS3(
+        element.docBase,
+        element.name,
+        "game-slider",
+        element.doctype
+      );
+      console.log("Result from awsS3Obj.addDocumentToS3:", result);
+
+      obj.image = result.Location;
+      obj.text = element.text;
+      obj.headingText = element.headingText;
+      documentArray.push(obj);
+    }
+
+    const newSlider = new Slider({
+      sliderCount: sliderCount,
+      document: documentArray,
+    });
+
+    const savedSlider = await newSlider.save();
+    console.log("Saved slider:", savedSlider);
+
+    return true;
+  } catch (err) {
+    console.error("Error in CreateSlider:", err);
+    throw { code: err.code || 500, message: err.message || "Failed to Create Sliders" }; // Fallback to generic error response
+  }
+}
+,
   
   
 };
