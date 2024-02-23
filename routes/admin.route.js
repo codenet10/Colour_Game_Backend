@@ -193,7 +193,7 @@ app.post("/api/user-login",async (req, res) => {
   
       const marketDetails = admins.gameList.flatMap((game) =>
         game.markets.filter((market) =>
-          market.marketName.toLowerCase().includes(searchQuery.toLowerCase())
+        market.marketName && market.marketName.toLowerCase().includes(searchQuery.toLowerCase())
         )
         .map(market => ({
           marketId: market.marketId,
