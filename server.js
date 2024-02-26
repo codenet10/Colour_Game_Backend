@@ -7,7 +7,7 @@ import { UserRoute } from './routes/user.route.js';
 import { errorHandler } from './middleware/ErrorHandling.js';
 import { dbConnection } from './DB/dbconnection.js';
 import { verifyJWT } from './middleware/JWTVerify.js';
-import { isAdmin } from './middleware/isAdmin.js';
+
 
 import cors from 'cors';
 
@@ -27,7 +27,7 @@ AdminRoute(app);
 UserRoute(app);
 
 app.use(verifyJWT);
-app.use(isAdmin);
+
 
 app.use(errorHandler);
 // app.use(notFound);

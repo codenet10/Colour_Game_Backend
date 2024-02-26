@@ -5,20 +5,19 @@ import { Authorize } from '../middleware/auth.js';
 import { mongoose } from 'mongoose';
 import { errorHandler, notFound } from '../middleware/ErrorHandling.js';
 import { verifyJWT } from '../middleware/JWTVerify.js';
-import { isAdmin } from '../middleware/isAdmin.js';
 
 export const AdminRoute = (app) => {
-  app.post('/api/admin-create', async (req, res) => {
+  app.post('/api/admin-create', errorHandler, async (req, res, next) => {
     try {
       const user = req.user;
       await AdminController.createAdmin(req.body, user);
       res.status(200).send({ code: 200, message: 'Admin registered successfully!' });
     } catch (err) {
-      res.status(500).send({ code: err.code, message: err.message });
+      next(err);
     }
   });
 
-  app.post('/api/admin-login', async (req, res) => {
+  app.post('/api/admin-login', errorHandler, async (req, res, next) => {
     try {
       const { userName, password } = req.body;
       const admin = await Admin.findOne({ userName: userName });
@@ -33,7 +32,7 @@ export const AdminRoute = (app) => {
     }
   });
 
-  app.post('/api/user-create', errorHandler, verifyJWT, isAdmin, async (req, res, next) => {
+  app.post('/api/user-create', errorHandler, Authorize(['Admin']), async (req, res, next) => {
     try {
       const user = req.body;
       await AdminController.createUser(req.body, user);
@@ -44,7 +43,7 @@ export const AdminRoute = (app) => {
     }
   });
 
-  app.post('/api/user-login', async (req, res) => {
+  app.post('/api/user-login', errorHandler, async (req, res, next) => {
     try {
       const { userName, password } = req.body;
       const user = await User.findOne({ userName: userName });
@@ -54,12 +53,12 @@ export const AdminRoute = (app) => {
       } else {
         res.status(404).json({ code: 404, message: 'Invalid Access Token or User' });
       }
-    } catch (error) {
-      res.status(500).send({ code: error.code, message: error.message });
+    } catch (err) {
+      next(err);
     }
   });
 
-  app.post('/api/create-games', errorHandler, notFound, verifyJWT, isAdmin, async (req, res, next) => {
+  app.post('/api/create-games', errorHandler, Authorize(['Admin']), async (req, res, next) => {
     try {
       const { gameName, Description } = req.body;
       const games = await AdminController.createGame(gameName, Description);
@@ -70,7 +69,7 @@ export const AdminRoute = (app) => {
     }
   });
 
-  app.post('/api/create-markets/:gameId', Authorize(['Admin']), async (req, res) => {
+  app.post('/api/create-markets/:gameId', errorHandler, Authorize(['Admin']), async (req, res) => {
     try {
       const { gameId } = req.params;
       console.log(gameId);
@@ -78,25 +77,22 @@ export const AdminRoute = (app) => {
       const markets = await AdminController.createMarket(gameId, marketName, participants, timeSpan);
       res.status(200).send({ code: 200, message: 'Market Create Successfully', markets });
     } catch (err) {
-      res.status(500).send({ code: err.code, message: err.message });
+      next(err);
     }
   });
 
-  app.post('/api/create-runners/:gameId/:marketId', Authorize(['Admin']), async (req, res) => {
+  app.post('/api/create-runners/:gameId/:marketId', errorHandler, Authorize(['Admin']), async (req, res, next) => {
     try {
       const { gameId, marketId } = req.params;
       const { runnerNames } = req.body;
       const runners = await AdminController.createRunner(gameId, marketId, runnerNames);
       res.status(200).send({ code: 200, message: 'Runner Create Successfully', runners });
     } catch (err) {
-      res.status(500).send({ code: err.code, message: err.message });
+      next(err);
     }
   });
 
-  app.post(
-    '/api/create-Rate/:gameId/:marketId/:runnerId',
-    errorHandler,
-    Authorize(['Admin']),
+  app.post('/api/create-Rate/:gameId/:marketId/:runnerId', errorHandler, Authorize(['Admin']),
     async (req, res, next) => {
       try {
         const { gameId, marketId, runnerId } = req.params;
@@ -110,7 +106,7 @@ export const AdminRoute = (app) => {
     },
   );
 
-  app.get('/api/All-Games', Authorize(['Admin']), async (req, res) => {
+  app.get('/api/All-Games', errorHandler, Authorize(['Admin']), async (req, res, next) => {
     try {
       const page = req.query.page ? parseInt(req.query.page) : 1;
       const pageSize = req.query.pageSize ? parseInt(req.query.pageSize) : 10;
@@ -152,15 +148,12 @@ export const AdminRoute = (app) => {
         totalPages: totalPages,
         totalItems: totalItems,
       });
-    } catch (error) {
-      res.status(500).send({
-        code: error.code || 500,
-        message: error.message || 'Internal Server Error',
-      });
+    } catch (err) {
+      next(err);
     }
   });
 
-  app.get('/api/All-Markets/:gameId', Authorize(['Admin']), async (req, res) => {
+  app.get('/api/All-Markets/:gameId', errorHandler, Authorize(['Admin']), async (req, res, next) => {
     try {
       const gameId = req.params.gameId;
       const page = parseInt(req.query.page) || 1;
@@ -209,15 +202,12 @@ export const AdminRoute = (app) => {
         totalPages: totalPages,
         totalItems: marketData.length,
       });
-    } catch (error) {
-      res.status(500).send({
-        code: error.code || 500,
-        message: error.message || 'Internal Server Error',
-      });
+    } catch (err) {
+      next(err);
     }
   });
 
-  app.get('/api/All-Runners/:gameId/:marketId', Authorize(['Admin']), async (req, res) => {
+  app.get('/api/All-Runners/:gameId/:marketId', errorHandler, Authorize(['Admin']), async (req, res, next) => {
     try {
       const gameId = req.params.gameId;
       const marketId = new mongoose.Types.ObjectId(req.params.marketId);
@@ -274,15 +264,12 @@ export const AdminRoute = (app) => {
         totalPages: totalPages,
         totalItems: totalItems,
       });
-    } catch (error) {
-      res.status(error.code || 500).send({
-        code: error.code || 500,
-        message: error.message || 'Internal Server Error',
-      });
+    } catch (err) {
+      next(err);;
     }
   });
 
-  app.post('/api/update-market-status/:marketId', async (req, res) => {
+  app.post('/api/update-market-status/:marketId', errorHandler, async (req, res, next) => {
     try {
       const { marketId } = req.params;
       const { status } = req.body;
@@ -290,14 +277,8 @@ export const AdminRoute = (app) => {
       const result = await AdminController.checkMarketStatus(marketId, status);
 
       res.status(200).json(result);
-    } catch (error) {
-      console.error(error);
-
-      if (error.message === 'Market not found.' || error.message === 'Invalid status format. It should be a boolean.') {
-        return res.status(400).json({ error: error.message });
-      }
-
-      res.status(500).json({ error: 'Internal server error.' });
+    } catch (err) {
+      next(err);
     }
   });
 
@@ -313,7 +294,7 @@ export const AdminRoute = (app) => {
   //         }
   //     });
 
-  app.get('/api/All-User', async (req, res) => {
+  app.get('/api/All-User', errorHandler, async (req, res, next) => {
     try {
       const page = req.query.page ? parseInt(req.query.page) : 1;
       const pageSize = req.query.pageSize ? parseInt(req.query.pageSize) : 10;
@@ -342,15 +323,12 @@ export const AdminRoute = (app) => {
         totalPages: totalPages,
         totalItems: totalItems,
       });
-    } catch (error) {
-      res.status(error.code || 500).send({
-        code: error.code || 500,
-        message: error.message || 'Internal Server Error',
-      });
+    } catch (err) {
+      next(err);
     }
   });
 
-  app.put('/api/update', Authorize(['Admin']), async (req, res) => {
+  app.put('/api/update', errorHandler, Authorize(['Admin']), async (req, res, next) => {
     try {
       const { gameId, marketId, runnerId } = req.query;
       const { gameName, description, marketName, participants, timeSpan, RunnerName, back, lay } = req.body;
@@ -381,24 +359,20 @@ export const AdminRoute = (app) => {
         message: 'Edit successful',
         gameList: admin.gameList,
       });
-    } catch (error) {
-      res.status(error.code || 500).json({
-        success: false,
-        message: error.message || 'Internal Server Error',
-      });
+    } catch (err) {
+      next(err)
     }
   });
 
-  app.post('/api/admin/slider-text-img/dynamic', Authorize(['Admin']), async (req, res) => {
+  app.post('/api/admin/slider-text-img/dynamic', errorHandler, Authorize(['Admin']), async (req, res, next) => {
     try {
       const { sliderCount, data } = req.body; // Destructure the required fields
       const createSlider = await AdminController.CreateSlider(sliderCount, data, req.user); // Pass the required fields directly
       if (createSlider) {
         res.status(201).send('Slider and text Created Successful');
       }
-    } catch (e) {
-      console.error(e);
-      res.status(e.code || 500).send({ message: e.message || 'Internal Server Error' }); // Fallback to generic error response
+    } catch (err) {
+      next(err);
     }
   });
 };

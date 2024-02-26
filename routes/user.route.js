@@ -4,7 +4,7 @@ import { User } from '../models/user.model.js';
 import { mongoose } from 'mongoose';
 
 export const UserRoute = (app) => {
-  app.get('/api/user-games', async (req, res) => {
+  app.get('/api/user-games',Authorize(['User']), async (req, res) => {
     try {
       const page = req.query.page ? parseInt(req.query.page) : 1;
       const pageSize = req.query.pageSize ? parseInt(req.query.pageSize) : 10;
@@ -54,7 +54,7 @@ export const UserRoute = (app) => {
     }
   });
 
-  app.get('/api/user-markets/:gameId', async (req, res) => {
+  app.get('/api/user-markets/:gameId',Authorize(['User']), async (req, res) => {
     try {
       const gameId = req.params.gameId;
       const page = parseInt(req.query.page) || 1;
@@ -111,7 +111,7 @@ export const UserRoute = (app) => {
     }
   });
 
-  app.get('/api/user-runners/:gameId/:marketId', async (req, res) => {
+  app.get('/api/user-runners/:gameId/:marketId',Authorize(['User']), async (req, res) => {
     try {
       const gameId = req.params.gameId;
       const marketId = new mongoose.Types.ObjectId(req.params.marketId);
@@ -176,7 +176,7 @@ export const UserRoute = (app) => {
     }
   });
 
-  app.post('/api/eligibilityCheck/:userId', async (req, res) => {
+  app.post('/api/eligibilityCheck/:userId',Authorize(['User']), async (req, res) => {
     try {
       const { userId } = req.params;
       const { eligibilityCheck } = req.body;
@@ -186,7 +186,7 @@ export const UserRoute = (app) => {
       res.status(500).send({ code: err.code, message: err.message });
     }
   });
-  app.get('/api/User-Details', async (req, res) => {
+  app.get('/api/User-Details',Authorize(['User']), async (req, res) => {
     try {
       const users = await User.find();
 
