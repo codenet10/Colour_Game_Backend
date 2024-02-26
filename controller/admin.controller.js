@@ -6,8 +6,6 @@ import { User } from '../models/user.model.js';
 import stringConstructor from '../constructor/stringConstructor.js';
 import awsS3Obj from '../helper/awsS3.js';
 import { Slider } from '../models/slider.model.js';
-import { log } from 'console';
-// var stringConstructor = require("../constructor/stringConstructor.js");
 
 // const globalUsernames = [];
 
