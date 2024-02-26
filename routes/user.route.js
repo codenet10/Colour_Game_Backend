@@ -2,6 +2,7 @@ import { UserController } from '../controller/user.controller.js';
 import { Admin } from '../models/admin.model.js';
 import { User } from '../models/user.model.js';
 import { mongoose } from 'mongoose';
+import {Authorize} from '../middleware/auth.js'
 
 export const UserRoute = (app) => {
   app.get('/api/user-games',Authorize(['User']), async (req, res) => {
