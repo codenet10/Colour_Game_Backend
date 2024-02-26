@@ -100,7 +100,7 @@ export const AdminController = {
         userName: data.userName,
         phoneNumber: data.phoneNumber,
         password: encryptedPassword,
-        roles: data.roles,
+        roles: 'User',
       });
       await newUser.save();
     } catch (error) {
