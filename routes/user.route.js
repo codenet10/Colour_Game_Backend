@@ -204,7 +204,24 @@ export const UserRoute = (app) => {
     }
   });
 
-  app.get('/api/user-All-gameData/:gameId', Authorize(['User']), async (req, res) => {
+  app.get('/api/user-All-gameData', Authorize(['User']), async (req, res) => {
+    try {
+      const admins = await Admin.find({}, 'gameList');
+  
+      if (!admins || admins.length === 0) {
+        return res.status(404).json({ message: 'Games not found' });
+      }
+  
+      const allGameData = admins.map((admin) => admin.gameList).flat(); 
+  
+      res.status(200).json(allGameData);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
+
+  app.get('/api/user-filter-gameData/:gameId', Authorize(['User']), async (req, res) => {
     try {
       const gameId = req.params.gameId;
   
