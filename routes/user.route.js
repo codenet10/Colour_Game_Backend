@@ -203,4 +203,23 @@ export const UserRoute = (app) => {
       });
     }
   });
+
+  app.get('/api/user-All-gameData/:gameId', Authorize(['User']), async (req, res) => {
+    try {
+      const gameId = req.params.gameId;
+  
+      const admin = await Admin.findOne({ 'gameList.gameId': gameId });
+  
+      if (!admin) {
+        return res.status(404).json({ message: 'Game not found' });
+      }
+  
+      const gameData = admin.gameList.find((game) => String(game.gameId) === gameId);
+  
+      res.status(200).json(gameData);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
 };
