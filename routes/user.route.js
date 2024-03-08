@@ -3,9 +3,29 @@ import { Admin } from '../models/admin.model.js';
 import { User } from '../models/user.model.js';
 import { mongoose } from 'mongoose';
 import { Authorize } from '../middleware/auth.js'
-import { Slider } from '../models/slider.model.js';
-
+import { errorHandler } from '../middleware/ErrorHandling.js'
 export const UserRoute = (app) => {
+
+  app.post('/api/user-login', errorHandler, async (req, res, next) => {
+    try {
+      const { userName, password } = req.body;
+      const user = await User.findOne({ userName: userName });
+      const accessToken = await UserController.loginUser(userName, password);
+  
+      if (user && accessToken) {
+        res.status(200).send({ code: 200, message: 'Login Successfully', token: accessToken });
+      } else if (!user) {
+        res.status(404).json({ code: 404, message: 'Invalid User' });
+      } else {
+        res.status(401).json({ code: 401, message: 'Invalid Password' });
+      }
+    } catch (error) {
+     res.status(error.code).json({ code: error.code, message: error.message });
+    //  next(error);
+    }
+  });
+  
+
   app.get('/api/user-games', Authorize(['User']), async (req, res) => {
     try {
       const page = req.query.page ? parseInt(req.query.page) : 1;
@@ -241,15 +261,6 @@ export const UserRoute = (app) => {
     }
   });
 
-  app.get("/api/admin/slider-text-img", async (req, res) => {
-    try {
-      const slider = await Slider.find();
-      res.status(200).send({
-        slider: slider
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  })
+
+ 
 };

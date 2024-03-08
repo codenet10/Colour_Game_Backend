@@ -5,6 +5,7 @@ import { Authorize } from '../middleware/auth.js';
 import { mongoose } from 'mongoose';
 import { errorHandler, notFound } from '../middleware/ErrorHandling.js';
 import { verifyJWT } from '../middleware/JWTVerify.js';
+import { Slider } from '../models/slider.model.js';
 
 export const AdminRoute = (app) => {
   app.post('/api/admin-create', errorHandler, async (req, res, next) => {
@@ -28,7 +29,8 @@ export const AdminRoute = (app) => {
         res.status(404).json({ code: 404, message: 'Invalid Access Token or User' });
       }
     } catch (err) {
-      res.status(500).send({ code: err.code, message: err.message });
+      // res.status(500).send({ code: err.code, message: err.message });
+      next(err);
     }
   });
 
@@ -43,21 +45,7 @@ export const AdminRoute = (app) => {
     }
   });
 
-  app.post('/api/user-login', errorHandler, async (req, res, next) => {
-    try {
-      const { userName, password } = req.body;
-      const user = await User.findOne({ userName: userName });
-      const accesstoken = await AdminController.loginUser(userName, password);
-      if (user && accesstoken) {
-        res.status(200).send({ code: 200, message: 'Login Successfully', token: accesstoken });
-      } else {
-        res.status(404).json({ code: 404, message: 'Invalid Access Token or User' });
-      }
-    } catch (err) {
-      next(err);
-    }
-  });
-
+ 
   app.post('/api/create-games', errorHandler, Authorize(['Admin']), async (req, res, next) => {
     try {
       const { gameName, Description } = req.body;
@@ -375,4 +363,16 @@ export const AdminRoute = (app) => {
       next(err);
     }
   });
+
+  app.get("/api/admin/slider-text-img", async (req, res) => {
+    try {
+      const slider = await Slider.find();
+      res.status(200).send({
+        slider: slider
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  })
 };
