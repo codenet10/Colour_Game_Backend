@@ -496,4 +496,5 @@ export const AdminController = {
       throw { code: err.code || 500, message: err.message || 'Failed to Create Sliders' }; // Fallback to generic error response
     }
   }
+  
 };
