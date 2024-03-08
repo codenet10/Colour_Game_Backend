@@ -2,10 +2,11 @@ import { UserController } from '../controller/user.controller.js';
 import { Admin } from '../models/admin.model.js';
 import { User } from '../models/user.model.js';
 import { mongoose } from 'mongoose';
-import {Authorize} from '../middleware/auth.js'
+import { Authorize } from '../middleware/auth.js'
+import { Slider } from '../models/slider.model.js';
 
 export const UserRoute = (app) => {
-  app.get('/api/user-games',Authorize(['User']), async (req, res) => {
+  app.get('/api/user-games', Authorize(['User']), async (req, res) => {
     try {
       const page = req.query.page ? parseInt(req.query.page) : 1;
       const pageSize = req.query.pageSize ? parseInt(req.query.pageSize) : 10;
@@ -55,7 +56,7 @@ export const UserRoute = (app) => {
     }
   });
 
-  app.get('/api/user-markets/:gameId',Authorize(['User']), async (req, res) => {
+  app.get('/api/user-markets/:gameId', Authorize(['User']), async (req, res) => {
     try {
       const gameId = req.params.gameId;
       const page = parseInt(req.query.page) || 1;
@@ -112,7 +113,7 @@ export const UserRoute = (app) => {
     }
   });
 
-  app.get('/api/user-runners/:gameId/:marketId',Authorize(['User']), async (req, res) => {
+  app.get('/api/user-runners/:gameId/:marketId', Authorize(['User']), async (req, res) => {
     try {
       const gameId = req.params.gameId;
       const marketId = new mongoose.Types.ObjectId(req.params.marketId);
@@ -177,7 +178,7 @@ export const UserRoute = (app) => {
     }
   });
 
-  app.post('/api/eligibilityCheck/:userId',Authorize(['User']), async (req, res) => {
+  app.post('/api/eligibilityCheck/:userId', Authorize(['User']), async (req, res) => {
     try {
       const { userId } = req.params;
       const { eligibilityCheck } = req.body;
@@ -187,7 +188,7 @@ export const UserRoute = (app) => {
       res.status(500).send({ code: err.code, message: err.message });
     }
   });
-  app.get('/api/User-Details',Authorize(['User']), async (req, res) => {
+  app.get('/api/User-Details', Authorize(['User']), async (req, res) => {
     try {
       const users = await User.find();
 
@@ -207,13 +208,13 @@ export const UserRoute = (app) => {
   app.get('/api/user-All-gameData', Authorize(['User']), async (req, res) => {
     try {
       const admins = await Admin.find({}, 'gameList');
-  
+
       if (!admins || admins.length === 0) {
         return res.status(404).json({ message: 'Games not found' });
       }
-  
-      const allGameData = admins.map((admin) => admin.gameList).flat(); 
-  
+
+      const allGameData = admins.map((admin) => admin.gameList).flat();
+
       res.status(200).json(allGameData);
     } catch (err) {
       console.error(err);
@@ -224,19 +225,31 @@ export const UserRoute = (app) => {
   app.get('/api/user-filter-gameData/:gameId', Authorize(['User']), async (req, res) => {
     try {
       const gameId = req.params.gameId;
-  
+
       const admin = await Admin.findOne({ 'gameList.gameId': gameId });
-  
+
       if (!admin) {
         return res.status(404).json({ message: 'Game not found' });
       }
-  
+
       const gameData = admin.gameList.find((game) => String(game.gameId) === gameId);
-  
+
       res.status(200).json(gameData);
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: 'Internal Server Error' });
     }
   });
+
+  app.get("/api/admin/slider-text-img", async (req, res) => {
+    try {
+      const slider = await Slider.find();
+      res.status(200).send({
+        slider: slider
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  })
 };
