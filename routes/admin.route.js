@@ -69,7 +69,7 @@ export const AdminRoute = (app) => {
     }
   });
 
-  app.post('/api/create-markets/:gameId', errorHandler, Authorize(['Admin']), async (req, res) => {
+  app.post('/api/create-markets/:gameId', errorHandler, Authorize(['Admin']), async (req, res, next) => {
     try {
       const { gameId } = req.params;
       console.log(gameId);
