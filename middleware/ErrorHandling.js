@@ -6,11 +6,12 @@ export const notFound = (req, res, next) => {
 };
 
 export const errorHandler = (err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
+  const statusCode = err.status || 500;
   const message = err.message || 'Internal Server Error';
   res.status(statusCode).json({
     success: false,
-    message: err.message,
-    status: err.statusCode,
+    message: message,
+    status: statusCode,
   });
 };
+
